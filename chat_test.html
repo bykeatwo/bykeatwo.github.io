@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaflet Map with Vue</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <title>Chat Modal Test</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app">
-        <div id="map"></div>
-
         <!-- Chat Modal -->
         <div id="chat-modal" v-show="showChat" class="modal">
             <div class="modal-content">
@@ -30,7 +27,33 @@
     </div>
 
     <script src="https://unpkg.com/vue@3.2.36/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="app.js"></script>
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    showChat: true,
+                    selectedPin: {
+                        messages: []
+                    },
+                    newMessage: ''
+                };
+            },
+            methods: {
+                sendMessage() {
+                    if (this.newMessage.trim() === '') return;
+
+                    const message = {
+                        id: crypto.randomUUID(),
+                        text: this.newMessage
+                    };
+
+                    this.selectedPin.messages.push(message);
+                    this.newMessage = '';
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
 </body>
 </html>
