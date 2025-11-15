@@ -9,11 +9,35 @@ const corsHeaders = {
 }
 
 async function handleRequest(request) {
+  const url = new URL(request.url);
+  const path = url.pathname;
+
   if (request.method === 'OPTIONS') {
     return handleOptions(request)
   }
 
-  if (request.method === 'GET') {
+  if (path === '/validate' && request.method === 'POST') {
+    // In a real application, you would perform some validation here.
+    // For now, we'll just return a 200 OK.
+    return new Response('Validation successful', { headers: corsHeaders });
+  }
+
+  if (path === '/chat' && request.method === 'POST') {
+    const { pinId, message } = await request.json();
+    const pinString = await PINS_KV.get(pinId);
+    if (pinString) {
+      const pin = JSON.parse(pinString);
+      if (!pin.messages) {
+        pin.messages = [];
+      }
+      pin.messages.push(message);
+      await PINS_KV.put(pinId, JSON.stringify(pin));
+      return new Response('Message saved', { headers: corsHeaders });
+    }
+    return new Response('Pin not found', { status: 404, headers: corsHeaders });
+  }
+
+  if (path === '/' && request.method === 'GET') {
     const kv_list = await PINS_KV.list();
     let pins = [];
     for (const key of kv_list.keys) {
@@ -25,9 +49,9 @@ async function handleRequest(request) {
     })
   }
 
-  if (request.method === 'POST') {
-    const body = await request.json();
-    await PINS_KV.put(crypto.randomUUID(), JSON.stringify(body));
+  if (path === '/' && request.method === 'POST') {
+    const pin = await request.json();
+    await PINS_KV.put(pin.id, JSON.stringify(pin));
     return new Response('Pin saved', { headers: corsHeaders });
   }
 
