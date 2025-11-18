@@ -3,7 +3,13 @@ const app = Vue.createApp({
     return {
       map: null,
       pins: [],
-      workerUrl: 'https://your-worker-url.workers.dev' // Replace with your worker URL
+      // Use a localhost URL for testing to avoid DNS errors
+      workerUrl: window.location.protocol.startsWith('file')
+        ? 'http://localhost:8787'
+        : 'https://map-pins-worker.your-worker-subdomain.workers.dev',
+      showChat: false,
+      selectedPin: null,
+      newMessage: ''
     };
   },
   mounted() {
@@ -12,20 +18,37 @@ const app = Vue.createApp({
   },
   methods: {
     initMap() {
-      this.map = L.map('map').setView([51.505, -0.09], 13);
+      this.map = L.map('map').setView([4.10932, 109.455475], 6);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(this.map);
       this.map.on('click', this.addPin);
     },
+    async validatePin(pin) {
+      const response = await fetch(`${this.workerUrl}/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pin)
+      });
+      return response.ok;
+    },
     async addPin(e) {
       const newPin = {
+        id: crypto.randomUUID(),
         lat: e.latlng.lat,
-        lng: e.latlng.lng
+        lng: e.latlng.lng,
+        messages: []
       };
-      this.pins.push(newPin);
-      L.marker([newPin.lat, newPin.lng]).addTo(this.map);
-      await this.savePin(newPin);
+
+      const isValid = await this.validatePin(newPin);
+      if (isValid) {
+        this.pins.push(newPin);
+        const marker = L.marker([newPin.lat, newPin.lng]).addTo(this.map);
+        marker.on('click', () => this.openChat(newPin));
+        await this.savePin(newPin);
+      } else {
+        alert('Pin validation failed!');
+      }
     },
     async savePin(pin) {
       await fetch(this.workerUrl, {
@@ -35,11 +58,37 @@ const app = Vue.createApp({
       });
     },
     async loadPins() {
-      const response = await fetch(this.workerUrl);
-      this.pins = await response.json();
-      this.pins.forEach(pin => {
-        L.marker([pin.lat, pin.lng]).addTo(this.map);
-      });
+        const response = await fetch(this.workerUrl);
+        this.pins = await response.json();
+        this.pins.forEach(pin => {
+            const marker = L.marker([pin.lat, pin.lng]).addTo(this.map);
+            marker.on('click', () => this.openChat(pin));
+        });
+    },
+    openChat(pin) {
+        this.selectedPin = pin;
+        this.showChat = true;
+    },
+    async sendMessage() {
+        if (this.newMessage.trim() === '') return;
+
+        const message = {
+            id: crypto.randomUUID(),
+            text: this.newMessage
+        };
+
+        if (!this.selectedPin.messages) {
+            this.selectedPin.messages = [];
+        }
+        this.selectedPin.messages.push(message);
+
+        await fetch(`${this.workerUrl}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pinId: this.selectedPin.id, message })
+        });
+
+        this.newMessage = '';
     }
   }
 });

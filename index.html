@@ -10,6 +10,23 @@
 <body>
     <div id="app">
         <div id="map"></div>
+
+        <!-- Chat Modal -->
+        <div id="chat-modal" v-show="showChat" class="modal">
+            <div class="modal-content">
+                <span class="close" @click="showChat = false">&times;</span>
+                <h2>Chat</h2>
+                <div class="chat-messages">
+                    <div v-for="message in selectedPin.messages" class="message">
+                        {{ message.text }}
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" v-model="newMessage" @keyup.enter="sendMessage" placeholder="Type a message...">
+                    <button @click="sendMessage">Send</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://unpkg.com/vue@3.2.36/dist/vue.global.js"></script>
