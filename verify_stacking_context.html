@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Stacking Context</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div id="map"></div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chat-app">
+        <div id="chat-modal" v-show="showChat" class="modal">
+            <div class="modal-content">
+                <span class="close" @click="showChat = false">&times;</span>
+                <h2>Chat</h2>
+                <div class="chat-messages">
+                    <div v-for="message in selectedPin.messages" class="message">
+                        {{ message.text }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3.2.36/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        // Global event bus to allow communication between the two Vue apps
+        const eventBus = Vue.reactive({
+            _showChat: false,
+            _selectedPin: { messages: [] },
+
+            get showChat() {
+                return this._showChat;
+            },
+            set showChat(value) {
+                this._showChat = value;
+            },
+            get selectedPin() {
+                return this._selectedPin;
+            },
+            set selectedPin(value) {
+                this._selectedPin = value;
+            },
+            openChat(pin) {
+                this.selectedPin = pin;
+                this.showChat = true;
+            }
+        });
+
+        const app = Vue.createApp({
+            data() {
+                return {
+                    map: null,
+                };
+            },
+            mounted() {
+                this.initMap();
+            },
+            methods: {
+                initMap() {
+                    this.map = L.map('map').setView([4.10932, 109.455475], 6);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(this.map);
+                    this.map.on('click', this.addPin);
+                },
+                addPin(e) {
+                    const newPin = {
+                        id: crypto.randomUUID(),
+                        lat: e.latlng.lat,
+                        lng: e.latlng.lng,
+                        messages: [{ id: crypto.randomUUID(), text: "This is a test message." }]
+                    };
+                    const marker = L.marker([newPin.lat, newPin.lng]).addTo(this.map);
+                    marker.on('click', () => eventBus.openChat(newPin));
+                }
+            }
+        });
+
+        const chatApp = Vue.createApp({
+            computed: {
+                showChat: {
+                    get() {
+                        return eventBus.showChat;
+                    },
+                    set(value) {
+                        eventBus.showChat = value;
+                    }
+                },
+                selectedPin: {
+                    get() {
+                        return eventBus.selectedPin;
+                    },
+                    set(value) {
+                        eventBus.selectedPin = value;
+                    }
+                }
+            }
+        });
+
+        app.mount('#app');
+        chatApp.mount('#chat-app');
+    </script>
+</body>
+</html>
