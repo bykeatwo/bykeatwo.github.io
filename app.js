@@ -8,7 +8,7 @@ const app = Vue.createApp({
         ? 'http://localhost:8787'
         : 'https://map-pins-worker.your-worker-subdomain.workers.dev',
       showChat: false,
-      selectedPin: null,
+      selectedPin: { messages: [] },
       newMessage: ''
     };
   },
