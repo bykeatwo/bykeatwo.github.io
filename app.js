@@ -1,15 +1,34 @@
+// Global event bus to allow communication between the two Vue apps
+const eventBus = Vue.reactive({
+    _showChat: false,
+    _selectedPin: { messages: [] },
+
+    get showChat() {
+        return this._showChat;
+    },
+    set showChat(value) {
+        this._showChat = value;
+    },
+    get selectedPin() {
+        return this._selectedPin;
+    },
+    set selectedPin(value) {
+        this._selectedPin = value;
+    },
+    openChat(pin) {
+        this.selectedPin = pin;
+        this.showChat = true;
+    }
+});
+
 const app = Vue.createApp({
   data() {
     return {
       map: null,
       pins: [],
-      // Use a localhost URL for testing to avoid DNS errors
       workerUrl: window.location.protocol.startsWith('file')
         ? 'http://localhost:8787'
         : 'https://map-pins-worker.your-worker-subdomain.workers.dev',
-      showChat: false,
-      selectedPin: { messages: [] },
-      newMessage: ''
     };
   },
   mounted() {
@@ -44,7 +63,7 @@ const app = Vue.createApp({
       if (isValid) {
         this.pins.push(newPin);
         const marker = L.marker([newPin.lat, newPin.lng]).addTo(this.map);
-        marker.on('click', () => this.openChat(newPin));
+        marker.on('click', () => eventBus.openChat(newPin));
         await this.savePin(newPin);
       } else {
         alert('Pin validation failed!');
@@ -62,35 +81,60 @@ const app = Vue.createApp({
         this.pins = await response.json();
         this.pins.forEach(pin => {
             const marker = L.marker([pin.lat, pin.lng]).addTo(this.map);
-            marker.on('click', () => this.openChat(pin));
+            marker.on('click', () => eventBus.openChat(pin));
         });
-    },
-    openChat(pin) {
-        this.selectedPin = pin;
-        this.showChat = true;
-    },
-    async sendMessage() {
-        if (this.newMessage.trim() === '') return;
-
-        const message = {
-            id: crypto.randomUUID(),
-            text: this.newMessage
-        };
-
-        if (!this.selectedPin.messages) {
-            this.selectedPin.messages = [];
-        }
-        this.selectedPin.messages.push(message);
-
-        await fetch(`${this.workerUrl}/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pinId: this.selectedPin.id, message })
-        });
-
-        this.newMessage = '';
     }
   }
 });
 
+const chatApp = Vue.createApp({
+    data() {
+        return {
+            newMessage: ''
+        };
+    },
+    computed: {
+        showChat: {
+            get() {
+                return eventBus.showChat;
+            },
+            set(value) {
+                eventBus.showChat = value;
+            }
+        },
+        selectedPin: {
+            get() {
+                return eventBus.selectedPin;
+            },
+            set(value) {
+                eventBus.selectedPin = value;
+            }
+        }
+    },
+    methods: {
+        async sendMessage() {
+            if (this.newMessage.trim() === '') return;
+
+            const message = {
+                id: crypto.randomUUID(),
+                text: this.newMessage
+            };
+
+            if (!this.selectedPin.messages) {
+                this.selectedPin.messages = [];
+            }
+            this.selectedPin.messages.push(message);
+
+            await fetch(`${app.config.globalProperties.workerUrl}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pinId: this.selectedPin.id, message })
+            });
+
+            this.newMessage = '';
+        }
+    }
+});
+
 app.mount('#app');
+chatApp.mount('#chat-app');
