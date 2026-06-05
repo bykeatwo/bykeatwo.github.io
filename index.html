@@ -3,36 +3,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaflet Map with Vue</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <link rel="stylesheet" href="style.css">
+    <title>New Student Guide â€“ Arthropod Research Unit, TIDREC</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        :root{--color-bg:#f6fbf6;--color-text:#14291a;--color-accent:#1b6e2e;}
+        body{background:var(--color-bg);font-family:'DM Sans',sans-serif;color:var(--color-text);margin:0;overflow:hidden;height:100vh;}
+        .deck{width:100vw;height:100vh;position:relative;}
+        .slide{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transform:scale(0.96);transition:all 0.65s ease;pointer-events:none;overflow:hidden;}
+        .slide.active{opacity:1;transform:scale(1);pointer-events:all;}
+        .slide>.content{position:relative;z-index:2;width:100%;max-width:1100px;padding:2rem;}
+        .nav-controls{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;z-index:100;background:rgba(255,255,255,0.93);padding:9px 22px;border-radius:40px;border:1px solid rgba(27,110,46,0.14);box-shadow:0 4px 18px rgba(0,0,0,0.08);}
+        .nav-btn{width:36px;height:36px;border:none;background:rgba(27,110,46,0.09);color:#1b6e2e;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+        .slide-dots{display:flex;gap:7px;max-width:340px;overflow:auto;padding:2px;}
+        .dot{width:8px;height:8px;border-radius:50%;background:rgba(27,110,46,0.2);cursor:pointer;flex:0 0 auto;}
+        .dot.active{background:#1b6e2e;transform:scale(1.35);}
+        .slide-counter{font-size:0.76rem;color:#5a8a65;min-width:44px;text-align:center;}
+        .reveal{opacity:0;transform:translateY(18px);transition:all 0.32s ease;}
+        .reveal.show{opacity:1;transform:translateY(0);}
+        .card{background:rgba(255,255,255,0.93);border:1px solid rgba(27,110,46,0.12);border-radius:13px;box-shadow:0 2px 10px rgba(0,0,0,0.055);}
+        .badge{display:inline-flex;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1b6e2e,#4caf50);color:#fff;font-weight:700;font-size:0.82rem;align-items:center;justify-content:center;}
+        .tag{display:inline-block;background:rgba(27,110,46,0.10);color:#1b6e2e;border-radius:20px;padding:3px 12px;font-size:0.76rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+        .link-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(27,110,46,0.09);border:1px solid rgba(27,110,46,0.2);border-radius:22px;padding:5px 14px;font-size:0.79rem;color:#1b6e2e;font-weight:600;text-decoration:none;}
+        .step-row{display:flex;align-items:flex-start;gap:12px;padding:11px 15px;background:rgba(255,255,255,0.87);border-radius:10px;border:1px solid rgba(27,110,46,0.10);}
+        .sec-head{font-family:'DM Serif Display',serif;font-size:clamp(1.5rem,3.2vw,2.2rem);color:#14291a;font-weight:400;margin:0;}
+        .divider-slide{background:linear-gradient(135deg,#1b6e2e,#2e7d32,#388e3c)!important;}
+        table{width:100%;border-collapse:collapse;background:rgba(255,255,255,0.93);border-radius:10px;overflow:hidden;}
+        th,td{padding:12px 15px;text-align:left;border-bottom:1px solid rgba(27,110,46,0.1);font-size:0.85rem;vertical-align:top;}
+        th{background:rgba(27,110,46,0.08);font-weight:600;color:#1b6e2e;}
+        tr:last-child td{border-bottom:none;}
+        @media (max-width: 768px){
+            .slide>.content{padding:1.1rem;}
+            .nav-controls{gap:8px;padding:8px 12px;bottom:14px;}
+            .slide-dots{max-width:160px;}
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <div id="map"></div>
-    </div>
+<div class="deck">
 
-    <!-- Chat Modal -->
-    <div id="chat-app">
-        <div id="chat-modal" v-show="showChat" class="modal">
-            <div class="modal-content">
-                <span class="close" @click="showChat = false">&times;</span>
-                <h2>Chat</h2>
-                <div class="chat-messages">
-                    <div v-for="message in selectedPin.messages" class="message">
-                        {{ message.text }}
-                    </div>
-                </div>
-                <div class="chat-input">
-                    <input type="text" v-model="newMessage" @keyup.enter="sendMessage" placeholder="Type a message...">
-                    <button @click="sendMessage">Send</button>
-                </div>
+<div class="slide active" data-slide="1">
+    <div class="content" style="text-align:center;">
+        <div class="reveal" style="font-size:88px;margin-bottom:12px;">ðŸ¦Ÿ</div>
+        <div class="reveal" style="margin-bottom:10px;"><span class="tag">Universiti Malaya Â· TIDREC</span></div>
+        <h1 class="reveal" style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5.5vw,3.8rem);line-height:1.15;margin:10px 0 8px;">Welcome to the<br><span style="background:linear-gradient(135deg,#1b6e2e,#4caf50);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Arthropod Research Unit</span></h1>
+        <p class="reveal" style="font-size:clamp(0.78rem,1.3vw,1rem);color:#5a8a65;letter-spacing:4px;text-transform:uppercase;font-weight:500;margin:10px 0 6px;">Tropical Infectious Diseases Research & Education Centre</p>
+        <p class="reveal" style="font-size:0.85rem;color:#a8c8b0;letter-spacing:1px;margin-top:6px;">New Student Orientation Guide Â· 2026</p>
+    </div>
+</div>
+
+<div class="slide" data-slide="2">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Contents</span>
+        <h2 class="sec-head reveal" style="margin-bottom:22px;">What's in this guide?</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;">
+            <div class="step-row reveal"><div class="badge">1</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">About Our Unit</div><div style="font-size:0.78rem;color:#5a8a65;">Who we are & research areas</div></div></div>
+            <div class="step-row reveal"><div class="badge">2</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">ARL Induction & Quiz</div><div style="font-size:0.78rem;color:#5a8a65;">Mandatory first-day requirement</div></div></div>
+            <div class="step-row reveal"><div class="badge">3</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">Your Google Drive Folder</div><div style="font-size:0.78rem;color:#5a8a65;">Personal folder for each student</div></div></div>
+            <div class="step-row reveal"><div class="badge">4</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">Lab SOPs</div><div style="font-size:0.78rem;color:#5a8a65;">All protocols & procedures</div></div></div>
+            <div class="step-row reveal"><div class="badge">5</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">HIRARC & IBBC Forms</div><div style="font-size:0.78rem;color:#5a8a65;">Mandatory safety documentation</div></div></div>
+            <div class="step-row reveal"><div class="badge">6</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">Equipment Logbooks</div><div style="font-size:0.78rem;color:#5a8a65;">Usage & in/out records</div></div></div>
+            <div class="step-row reveal"><div class="badge">7</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">Duty Rooster</div><div style="font-size:0.78rem;color:#5a8a65;">Lab maintenance responsibilities</div></div></div>
+            <div class="step-row reveal"><div class="badge">8</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">Procurement</div><div style="font-size:0.78rem;color:#5a8a65;">How to request purchases</div></div></div>
+            <div class="step-row reveal"><div class="badge">9</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">Ordering Primers</div><div style="font-size:0.78rem;color:#5a8a65;">Apical Scientific process</div></div></div>
+            <div class="step-row reveal"><div class="badge">10</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">Research Logbook</div><div style="font-size:0.78rem;color:#5a8a65;">Daily and weekly records</div></div></div>
+            <div class="step-row reveal"><div class="badge">11</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">Lab Etiquette</div><div style="font-size:0.78rem;color:#5a8a65;">Rules and expectations</div></div></div>
+            <div class="step-row reveal"><div class="badge">12</div><div><div style="font-weight:600;color:#14291a;font-size:0.9rem;">Contacts & Links</div><div style="font-size:0.78rem;color:#5a8a65;">Key people & resources</div></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="slide" data-slide="3">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">About Us</span>
+        <h2 class="sec-head reveal" style="margin-bottom:4px;">Arthropod Research Unit</h2>
+        <p class="reveal" style="color:#5a8a65;font-size:0.88rem;margin-bottom:18px;">TIDREC, Universiti Malaya â€” Advancing tropical infectious disease research through vector biology, molecular diagnostics and epidemiology.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;">
+            <div class="card reveal" style="padding:17px;text-align:center;"><div style="font-size:2.1rem;margin-bottom:7px;">ðŸ¦Ÿ</div><div style="font-weight:600;color:#14291a;font-size:0.88rem;margin-bottom:4px;">Vector Biology</div><div style="font-size:0.77rem;color:#5a8a65;">Mosquito competence, colonisation and insecticide resistance</div></div>
+            <div class="card reveal" style="padding:17px;text-align:center;"><div style="font-size:2.1rem;margin-bottom:7px;">ðŸ§¬</div><div style="font-weight:600;color:#14291a;font-size:0.88rem;margin-bottom:4px;">Molecular Diagnostics</div><div style="font-size:0.77rem;color:#5a8a65;">Xenomonitoring, DNA and RNA extraction and PCR</div></div>
+            <div class="card reveal" style="padding:17px;text-align:center;"><div style="font-size:2.1rem;margin-bottom:7px;">ðŸ•·ï¸</div><div style="font-weight:600;color:#14291a;font-size:0.88rem;margin-bottom:4px;">Tick-Borne Pathogens</div><div style="font-size:0.77rem;color:#5a8a65;">Tick biology, zoonoses and One Health</div></div>
+            <div class="card reveal" style="padding:17px;text-align:center;"><div style="font-size:2.1rem;margin-bottom:7px;">ðŸ¦ </div><div style="font-weight:600;color:#14291a;font-size:0.88rem;margin-bottom:4px;">Arboviruses</div><div style="font-size:0.77rem;color:#5a8a65;">Dengue, chikungunya and emerging tropical viruses</div></div>
+            <div class="card reveal" style="padding:17px;text-align:center;"><div style="font-size:2.1rem;margin-bottom:7px;">ðŸ“Š</div><div style="font-weight:600;color:#14291a;font-size:0.88rem;margin-bottom:4px;">Epidemiology</div><div style="font-size:0.77rem;color:#5a8a65;">Epidemiology and risk factor studies</div></div>
+            <div class="card reveal" style="padding:17px;text-align:center;"><div style="font-size:2.1rem;margin-bottom:7px;">ðŸŽ“</div><div style="font-weight:600;color:#14291a;font-size:0.88rem;margin-bottom:4px;">Education & Outreach</div><div style="font-size:0.77rem;color:#5a8a65;">Lab training, science communication and One Health initiatives</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="slide divider-slide" data-slide="4">
+    <div class="content" style="text-align:center;">
+        <div class="reveal" style="font-size:72px;margin-bottom:14px;">ðŸ</div>
+        <h2 class="reveal" style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:#ffffff;margin:0 0 10px;">Getting Started</h2>
+        <p class="reveal" style="font-size:1rem;color:rgba(255,255,255,0.75);letter-spacing:3px;text-transform:uppercase;font-weight:500;">Induction Â· Google Drive Â· SOPs Â· Safety</p>
+    </div>
+</div>
+
+<div class="slide" data-slide="5">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">First Day</span>
+        <h2 class="sec-head reveal" style="margin-bottom:5px;">ARL Induction & Quiz</h2>
+        <p class="reveal" style="color:#5a8a65;font-size:0.88rem;margin-bottom:18px;">All new students must complete the Animal Research Laboratory (ARL) induction before starting any laboratory work. This is mandatory.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:13px;">
+            <div class="card reveal" style="padding:18px;border-left:4px solid #1b6e2e;">
+                <div style="font-size:1.8rem;margin-bottom:8px;">ðŸ“‹</div>
+                <div style="font-weight:600;color:#14291a;font-size:0.9rem;margin-bottom:7px;">Induction Covers</div>
+                <ul style="margin:0;">
+                    <li style="font-size:0.82rem;color:#2e5c38;">Lab safety rules and emergency procedures</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Biosafety levels and PPE requirements</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Arthropod handling and containment</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Waste disposal and decontamination</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Lab equipment usage rules</li>
+                </ul>
+            </div>
+            <div class="card reveal" style="padding:18px;border-left:4px solid #1b6e2e;">
+                <div style="font-size:1.8rem;margin-bottom:8px;">ðŸ“</div>
+                <div style="font-weight:600;color:#14291a;font-size:0.9rem;margin-bottom:7px;">ARL Quiz</div>
+                <ul style="margin:0;">
+                    <li style="font-size:0.82rem;color:#2e5c38;">Taken after completing induction</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Tests understanding of safety protocols</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Must be passed before independent lab work</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Certificate issued upon passing</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Keep a copy in your Google Drive folder</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card reveal" style="padding:12px 15px;background:rgba(27,110,46,0.05);border:1px dashed rgba(27,110,46,0.28);border-radius:9px;">
+            <span style="font-size:0.84rem;color:#1b6e2e;font-weight:700;">Other mandatory training:</span>
+            <span style="font-size:0.84rem;color:#2e5c38;"> Biosafety and biosecurity training is conducted by the TIDREC Administrative Office. Please follow instructions from TIDREC admin for training dates, registration, and any required refresher sessions.</span>
+        </div>
+    </div>
+</div>
+
+<div class="slide" data-slide="6">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Organisation</span>
+        <h2 class="sec-head reveal" style="margin-bottom:5px;">Your Personal Google Drive Folder</h2>
+        <p class="reveal" style="color:#5a8a65;font-size:0.88rem;margin-bottom:18px;">A dedicated Google Drive folder will be created for each new student when you join the lab. Use it consistently throughout your research programme.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:12px;">
+            <div class="card reveal" style="padding:17px;border-left:4px solid #1b6e2e;">
+                <div style="font-size:1.7rem;margin-bottom:7px;">ðŸ“</div>
+                <div style="font-weight:600;color:#14291a;font-size:0.9rem;margin-bottom:6px;">What to store</div>
+                <ul style="margin:0;">
+                    <li style="font-size:0.81rem;color:#2e5c38;">Research logbook Excel file</li>
+                    <li style="font-size:0.81rem;color:#2e5c38;">Raw data and experiment results</li>
+                    <li style="font-size:0.81rem;color:#2e5c38;">Signed PR forms and procurement documents</li>
+                    <li style="font-size:0.81rem;color:#2e5c38;">ARL induction certificate</li>
+                    <li style="font-size:0.81rem;color:#2e5c38;">Progress reports and presentations</li>
+                    <li style="font-size:0.81rem;color:#2e5c38;">HIRARC and IBBC forms</li>
+                </ul>
+            </div>
+            <div class="card reveal" style="padding:17px;border-left:4px solid #1b6e2e;">
+                <div style="font-size:1.7rem;margin-bottom:7px;">ðŸ“‹</div>
+                <div style="font-weight:600;color:#14291a;font-size:0.9rem;margin-bottom:6px;">Your responsibilities</div>
+                <ul style="margin:0;">
+                    <li style="font-size:0.81rem;color:#2e5c38;">Update your logbook every day you are in the lab</li>
+                    <li style="font-size:0.81rem;color:#2e5c38;">Label files clearly with dates</li>
+                    <li style="font-size:0.81rem;color:#2e5c38;">Never delete shared or lab-wide files</li>
+                    <li style="font-size:0.81rem;color:#2e5c38;">Share access with your supervisor if needed</li>
+                    <li style="font-size:0.81rem;color:#2e5c38;">Use your UM institutional email</li>
+                </ul>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://unpkg.com/vue@3.2.36/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="app.js"></script>
+<div class="slide" data-slide="7">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Protocols</span>
+        <h2 class="sec-head reveal" style="margin-bottom:5px;">Lab SOPs â€” Read Before You Start</h2>
+        <p class="reveal" style="color:#5a8a65;font-size:0.88rem;margin-bottom:16px;">All procedures are documented. Follow them exactly. Never improvise without supervisor approval.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:13px;">
+            <div class="step-row reveal card" style="border-left:4px solid #1b6e2e;"><span style="font-size:1.7rem;">ðŸ¦Ÿ</span><div><div style="font-weight:600;color:#14291a;font-size:0.87rem;">Mosquito Colonisation</div><div style="font-size:0.78rem;color:#5a8a65;">Rearing, blood-feeding and colony maintenance</div></div></div>
+            <div class="step-row reveal card" style="border-left:4px solid #1b6e2e;"><span style="font-size:1.7rem;">ðŸ§¬</span><div><div style="font-weight:600;color:#14291a;font-size:0.87rem;">DNA/RNA Extraction</div><div style="font-size:0.78rem;color:#5a8a65;">Tissue homogenisation and nucleic acid isolation</div></div></div>
+            <div class="step-row reveal card" style="border-left:4px solid #1b6e2e;"><span style="font-size:1.7rem;">ðŸ”¬</span><div><div style="font-weight:600;color:#14291a;font-size:0.87rem;">PCR & Molecular Assays</div><div style="font-size:0.78rem;color:#5a8a65;">Primer setup, thermal cycling and analysis</div></div></div>
+            <div class="step-row reveal card" style="border-left:4px solid #1b6e2e;"><span style="font-size:1.7rem;">ðŸ§ª</span><div><div style="font-weight:600;color:#14291a;font-size:0.87rem;">Other Lab SOPs</div><div style="font-size:0.78rem;color:#5a8a65;">Refer to the shared folder for the full SOP collection</div></div></div>
+        </div>
+        <div class="card reveal" style="padding:13px 17px;background:rgba(27,110,46,0.06);border:1px solid rgba(27,110,46,0.18);border-radius:10px;">
+            <div style="font-weight:600;color:#1b6e2e;margin-bottom:6px;font-size:0.87rem;">ðŸ“‚ Access all SOPs here:</div>
+            <a class="link-pill" href="https://drive.google.com/open?id=1GIak315vrVBIdwOyqyCG8R-XOnSFbKIj&usp=drive_fs" target="_blank" rel="noopener noreferrer">Open Lab SOPs folder</a>
+        </div>
+    </div>
+</div>
+
+<div class="slide" data-slide="8">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Safety Forms</span>
+        <h2 class="sec-head reveal" style="margin-bottom:5px;">HIRARC & IBBC Forms</h2>
+        <p class="reveal" style="color:#5a8a65;font-size:0.88rem;margin-bottom:18px;">Mandatory safety documents required by Universiti Malaya.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:13px;">
+            <div class="card reveal" style="padding:19px;border-left:4px solid #c62828;">
+                <div style="font-size:1.9rem;margin-bottom:7px;">âš ï¸</div>
+                <div style="font-weight:700;color:#14291a;font-size:0.95rem;margin-bottom:3px;">HIRARC</div>
+                <div style="font-size:0.79rem;color:#5a8a65;margin-bottom:9px;font-style:italic;">Hazard Identification, Risk Assessment & Risk Control</div>
+                <div class="card" style="background:rgba(255,193,7,0.1);border:1px solid rgba(255,160,0,0.3);border-radius:7px;padding:10px;margin-bottom:11px;">
+                    <span style="font-size:0.8rem;font-weight:700;color:#e65100;">Deadline:</span>
+                    <span style="font-size:0.82rem;color:#3d5a3d;font-weight:600;"> Before the start of your project</span>
+                </div>
+                <a class="link-pill" href="https://drive.google.com/open?id=1SNfqZF0lua7GNNVXg-jVfHblXmNhDto7&usp=drive_fs" target="_blank" rel="noopener noreferrer" style="font-size:0.77rem;">Upload HIRARC here</a>
+            </div>
+            <div class="card reveal" style="padding:19px;border-left:4px solid #1565c0;">
+                <div style="font-size:1.9rem;margin-bottom:7px;">ðŸ§«</div>
+                <div style="font-weight:700;color:#14291a;font-size:0.95rem;margin-bottom:3px;">IBBC</div>
+                <div style="font-size:0.79rem;color:#5a8a65;margin-bottom:9px;font-style:italic;">Institutional Biosafety & Biosecurity Committee</div>
+                <div class="card" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:7px;padding:10px;margin-bottom:11px;">
+                    <span style="font-size:0.8rem;font-weight:700;color:#2e7d32;">Deadline:</span>
+                    <span style="font-size:0.82rem;color:#3d5a3d;font-weight:600;"> Before the end of your candidature</span>
+                </div>
+                <a class="link-pill" href="https://drive.google.com/open?id=1xU_fUBUiRmdXuBh0IVInpBdkR8WCxRz4&usp=drive_fs" target="_blank" rel="noopener noreferrer" style="font-size:0.77rem;">Upload IBBC here</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide" data-slide="9">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Equipment</span>
+        <h2 class="sec-head reveal" style="margin-bottom:5px;">Equipment Logbooks</h2>
+        <p class="reveal" style="color:#5a8a65;font-size:0.88rem;margin-bottom:18px;">Recording equipment usage is compulsory for every session.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="card reveal" style="padding:19px;border-left:4px solid #1b6e2e;">
+                <div style="font-size:1.8rem;margin-bottom:8px;">ðŸ““</div>
+                <div style="font-weight:700;color:#14291a;font-size:0.92rem;margin-bottom:6px;">Equipment Usage Logbook</div>
+                <div class="card" style="background:rgba(27,110,46,0.06);border:1px dashed rgba(27,110,46,0.3);border-radius:7px;padding:10px;margin-bottom:11px;">
+                    <span style="font-size:0.8rem;font-weight:600;color:#1b6e2e;">Location:</span>
+                    <span style="font-size:0.82rem;color:#2e5c38;font-weight:600;"> Just next to each equipment</span>
+                </div>
+                <p style="font-size:0.81rem;color:#5a8a65;margin:0;">Fill up the logbook each time using the equipment.</p>
+            </div>
+            <div class="card reveal" style="padding:19px;border-left:4px solid #1b6e2e;">
+                <div style="font-size:1.8rem;margin-bottom:8px;">ðŸ”„</div>
+                <div style="font-weight:700;color:#14291a;font-size:0.92rem;margin-bottom:6px;">Equipment In/Out Logbook</div>
+                <p style="font-size:0.81rem;color:#5a8a65;margin:0;">Any equipment that is taken out from the lab must also be filled in the in/out equipment logbook.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide" data-slide="10">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Team Culture</span>
+        <h2 class="sec-head reveal" style="margin-bottom:5px;">Duty Rooster</h2>
+        <p class="reveal" style="color:#5a8a65;font-size:0.88rem;margin-bottom:18px;">All students need to help each other and maintain the lab so we have a duty rooster.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="card reveal" style="padding:19px;border-left:4px solid #1b6e2e;">
+                <div style="font-size:1.8rem;margin-bottom:8px;">ðŸ“…</div>
+                <div style="font-weight:700;color:#14291a;font-size:0.92rem;margin-bottom:6px;">Daily Responsibilities</div>
+                <ul style="margin:0;">
+                    <li style="font-size:0.82rem;color:#2e5c38;">Record fridge temperature daily</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Check the lab is in good position</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Help maintain cleanliness and order</li>
+                </ul>
+            </div>
+            <div class="card reveal" style="padding:19px;border-left:4px solid #1b6e2e;">
+                <div style="font-size:1.8rem;margin-bottom:8px;">ðŸ§ª</div>
+                <div style="font-weight:700;color:#14291a;font-size:0.92rem;margin-bottom:6px;">Routine Lab Tasks</div>
+                <ul style="margin:0;">
+                    <li style="font-size:0.82rem;color:#2e5c38;">Autoclaving all the pipette tips and other shared items</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Support common lab upkeep duties</li>
+                    <li style="font-size:0.82rem;color:#2e5c38;">Work together as a team</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide divider-slide" data-slide="11">
+    <div class="content" style="text-align:center;">
+        <div class="reveal" style="font-size:72px;margin-bottom:14px;">ðŸ§ª</div>
+        <h2 class="reveal" style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:#ffffff;margin:0 0 10px;">Lab Operations</h2>
+        <p class="reveal" style="font-size:1rem;color:rgba(255,255,255,0.75);letter-spacing:3px;text-transform:uppercase;font-weight:500;">Procurement Â· Primers Â· Logbook Â· Etiquette</p>
+    </div>
+</div>
+
+<div class="slide" data-slide="12">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Procurement</span>
+        <h2 class="sec-head reveal" style="margin-bottom:5px;">How to Make a Purchase</h2>
+        <p class="reveal" style="color:#5a8a65;font-size:0.87rem;margin-bottom:15px;">Follow all steps in order. Incomplete forms will be returned.</p>
+        <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:12px;">
+            <div class="step-row reveal card"><div class="badge">1</div><div><span style="font-weight:600;color:#14291a;">Email quotation to Dr. Vinnie</span> <span style="color:#5a8a65;font-size:0.84rem;">â€” Send supplier quotation to</span> <strong style="color:#1b6e2e;font-size:0.84rem;">vinnie_siow@um.edu.my</strong> <span style="color:#5a8a65;font-size:0.84rem;">for price verification before proceeding</span></div></div>
+            <div class="step-row reveal card"><div class="badge">2</div><div><span style="font-weight:600;color:#14291a;">Receive Procurement Reference Number</span> <span style="color:#5a8a65;font-size:0.84rem;">â€” Use this in your PR form</span></div></div>
+            <div class="step-row reveal card"><div class="badge">3</div><div><span style="font-weight:600;color:#14291a;">Get PR form signed</span></div></div>
+            <div class="step-row reveal card"><div class="badge">4</div><div style="width:100%;"><div style="font-weight:600;color:#14291a;margin-bottom:3px;">Upload to Google Drive</div><div style="font-size:0.83rem;color:#5a8a65;margin-bottom:5px;">Create a new folder named with your Procurement Reference Number and include:</div><div style="font-size:0.81rem;color:#2e5c38;">Signed PR form and Kajian Pasaran, each document separately</div><div style="margin-top:8px;"><a class="link-pill" href="https://drive.google.com/drive/folders/1EAljm5j0nBpX4itE3nZIZKr4ufYRJCcs?usp=drive_link" target="_blank" rel="noopener noreferrer">Procurement Drive Folder</a></div></div></div>
+            <div class="step-row reveal card" style="background:rgba(27,110,46,0.06);"><div class="badge">5</div><div><span style="font-weight:600;color:#14291a;">Inform Dr. Vinnie</span> <span style="color:#5a8a65;font-size:0.84rem;">â€” After done upload to Google Drive</span></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="slide" data-slide="13">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Reagents</span>
+        <h2 class="sec-head reveal" style="margin-bottom:5px;">Ordering Primers from Apical</h2>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="step-row reveal card"><div class="badge">1</div><div>Fill in the primer sequences in the order form named <strong>ISO 9001 tube</strong>.</div></div>
+            <div class="step-row reveal card"><div class="badge">2</div><div>Refer to the manual in the uploaded Google Drive folder when filling in the form. <a class="link-pill" href="https://drive.google.com/drive/folders/1C2Rqa1B43b3xObQMmX92KRpJaxqAlj9n?usp=drive_link" target="_blank" rel="noopener noreferrer" style="margin-left:8px;">Primer Order Manual</a></div></div>
+            <div class="step-row reveal card"><div class="badge">3</div><div>Save the completed form in our Google Drive under: <strong>Inventory / Primer Orders</strong></div></div>
+            <div class="step-row reveal card"><div class="badge">4</div><div>Email the form to <strong>oligo@apicalscientific.com</strong><br>CC: nastasea-sabar@apicalscientific.com, vinnie_siow@um.edu.my, vanlun_low@um.edu.my</div></div>
+            <div class="step-row reveal card" style="background:rgba(27,110,46,0.06);"><div class="badge">5</div><div>State in the email: <strong>Please proceed using Dr. Lucas account (SOID: 14317-D)</strong></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="slide" data-slide="14">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Logbook</span>
+        <h2 class="sec-head reveal" style="margin-bottom:5px;">Keeping Your Research Logbook</h2>
+        <p class="reveal" style="color:#5a8a65;font-size:0.87rem;margin-bottom:16px;">Your logbook is a scientific record. Update it every day you work in the lab. It is subject to supervisor review at any time.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="card reveal" style="padding:16px;">
+                <div style="font-size:2rem;margin-bottom:7px;">ðŸ“…</div>
+                <div style="font-weight:600;color:#14291a;font-size:0.88rem;margin-bottom:6px;">Daily Log</div>
+                <p style="font-size:0.82rem;color:#2e5c38;margin:0;">Use the daily log to record your day-to-day research work.</p>
+            </div>
+            <div class="card reveal" style="padding:16px;">
+                <div style="font-size:2rem;margin-bottom:7px;">ðŸ“Š</div>
+                <div style="font-weight:600;color:#14291a;font-size:0.88rem;margin-bottom:6px;">Weekly Summary</div>
+                <p style="font-size:0.82rem;color:#2e5c38;margin:0;">Use the weekly summary to record overall progress and plans.</p>
+            </div>
+        </div>
+        <div class="card reveal" style="padding:11px 15px;background:rgba(27,110,46,0.05);border:1px dashed rgba(27,110,46,0.27);border-radius:9px;">
+            <span style="font-size:0.83rem;color:#1b6e2e;font-weight:600;">ðŸ“Ž Your logbook Excel file</span>
+            <span style="font-size:0.83rem;color:#2e5c38;"> is provided in your personal Google Drive folder. Update it every single day you are in the lab.</span>
+            <br><span style="font-size:0.83rem;color:#2e5c38;">Logbook Excel template and how to use it:</span>
+            <a class="link-pill" href="https://drive.google.com/open?id=1bn5aEcGnfq5gkNap7Kmet7SVYuFVgpTZ&usp=drive_fs" target="_blank" rel="noopener noreferrer" style="margin-left:8px;font-size:0.76rem;">Open logbook template</a>
+        </div>
+    </div>
+</div>
+
+<div class="slide" data-slide="15">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Expectations</span>
+        <h2 class="sec-head reveal" style="margin-bottom:18px;">Lab Etiquette & General Rules</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;">
+            <div class="card reveal" style="padding:15px;border-left:4px solid #1b6e2e;"><div style="font-weight:600;color:#14291a;margin-bottom:7px;font-size:0.9rem;">ðŸ›¡ï¸ Safety First</div><ul style="margin:0;"><li style="font-size:0.8rem;color:#2e5c38;">Wear PPE at all times in the lab</li><li style="font-size:0.8rem;color:#2e5c38;">Report accidents or near-misses immediately</li><li style="font-size:0.8rem;color:#2e5c38;">Know locations of first aid and fire exits</li><li style="font-size:0.8rem;color:#2e5c38;">No food or drinks in the laboratory</li></ul></div>
+            <div class="card reveal" style="padding:15px;border-left:4px solid #1b6e2e;"><div style="font-weight:600;color:#14291a;margin-bottom:7px;font-size:0.9rem;">ðŸ§¹ Cleanliness & Order</div><ul style="margin:0;"><li style="font-size:0.8rem;color:#2e5c38;">Clean your bench before and after every use</li><li style="font-size:0.8rem;color:#2e5c38;">Label all samples with date and your name</li><li style="font-size:0.8rem;color:#2e5c38;">Return equipment to its designated place</li><li style="font-size:0.8rem;color:#2e5c38;">Dispose of waste properly</li></ul></div>
+            <div class="card reveal" style="padding:15px;border-left:4px solid #1b6e2e;"><div style="font-weight:600;color:#14291a;margin-bottom:7px;font-size:0.9rem;">ðŸ¤ Professionalism</div><ul style="margin:0;"><li style="font-size:0.8rem;color:#2e5c38;">Inform supervisor before any absence</li><li style="font-size:0.8rem;color:#2e5c38;">Respect shared equipment and reagent stocks</li><li style="font-size:0.8rem;color:#2e5c38;">Attend scheduled meetings</li><li style="font-size:0.8rem;color:#2e5c38;">Keep unpublished data confidential</li></ul></div>
+            <div class="card reveal" style="padding:15px;border-left:4px solid #1b6e2e;"><div style="font-weight:600;color:#14291a;margin-bottom:7px;font-size:0.9rem;">ðŸ“š Scientific Integrity</div><ul style="margin:0;"><li style="font-size:0.8rem;color:#2e5c38;">Record data honestly</li><li style="font-size:0.8rem;color:#2e5c38;">Follow SOPs and document deviations</li><li style="font-size:0.8rem;color:#2e5c38;">Acknowledge contributions properly</li><li style="font-size:0.8rem;color:#2e5c38;">Seek approval before modifying protocols</li></ul></div>
+        </div>
+    </div>
+</div>
+
+<div class="slide" data-slide="16">
+    <div class="content">
+        <span class="tag reveal" style="margin-bottom:10px;display:inline-block;">Quick Reference</span>
+        <h2 class="sec-head reveal" style="margin-bottom:5px;">Key Contacts & All Links</h2>
+        <p class="reveal" style="color:#5a8a65;font-size:0.87rem;margin-bottom:15px;">When in doubt, ask your supervisor first.</p>
+        <div class="card reveal" style="padding:17px;margin-bottom:13px;">
+            <table>
+                <thead><tr><th>Role</th><th>Name</th><th>Contact</th></tr></thead>
+                <tbody>
+                    <tr><td style="font-weight:600;color:#1b6e2e;">Head of Unit</td><td>Associate Prof Dr. Low Van Lun</td><td>vanlun_low@um.edu.my</td></tr>
+                    <tr><td style="font-weight:600;color:#1b6e2e;">Postdoctoral Research Fellow</td><td>Dr. Vinnie Siow Wei Yin</td><td>vinnie_siow@um.edu.my | 017-6009258</td></tr>
+                    <tr><td style="font-weight:600;color:#1b6e2e;">Research Officer</td><td>Puan Juraina Abd Jamil</td><td>juraina@um.edu.my</td></tr>
+                    <tr><td style="font-weight:600;color:#1b6e2e;">MLT</td><td>Puan Mulya Mustika Sari binti Zulkifli</td><td>mulyamustika@um.edu.my</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:11px;">
+            <div class="card reveal" style="padding:12px;text-align:center;"><div style="font-size:1.2rem;margin-bottom:3px;">ðŸ“‚</div><div style="font-weight:600;color:#14291a;font-size:0.78rem;margin-bottom:5px;">Lab SOPs</div><a class="link-pill" href="https://drive.google.com/open?id=1GIak315vrVBIdwOyqyCG8R-XOnSFbKIj&usp=drive_fs" target="_blank" rel="noopener noreferrer" style="font-size:0.7rem;justify-content:center;">Open</a></div>
+            <div class="card reveal" style="padding:12px;text-align:center;"><div style="font-size:1.2rem;margin-bottom:3px;">âš ï¸</div><div style="font-weight:600;color:#14291a;font-size:0.78rem;margin-bottom:5px;">HIRARC Upload</div><a class="link-pill" href="https://drive.google.com/open?id=1SNfqZF0lua7GNNVXg-jVfHblXmNhDto7&usp=drive_fs" target="_blank" rel="noopener noreferrer" style="font-size:0.7rem;justify-content:center;">Open</a></div>
+            <div class="card reveal" style="padding:12px;text-align:center;"><div style="font-size:1.2rem;margin-bottom:3px;">ðŸ§«</div><div style="font-weight:600;color:#14291a;font-size:0.78rem;margin-bottom:5px;">IBBC Upload</div><a class="link-pill" href="https://drive.google.com/open?id=1xU_fUBUiRmdXuBh0IVInpBdkR8WCxRz4&usp=drive_fs" target="_blank" rel="noopener noreferrer" style="font-size:0.7rem;justify-content:center;">Open</a></div>
+            <div class="card reveal" style="padding:12px;text-align:center;"><div style="font-size:1.2rem;margin-bottom:3px;">ðŸ›’</div><div style="font-weight:600;color:#14291a;font-size:0.78rem;margin-bottom:5px;">Procurement</div><a class="link-pill" href="https://drive.google.com/drive/folders/1EAljm5j0nBpX4itE3nZIZKr4ufYRJCcs?usp=drive_link" target="_blank" rel="noopener noreferrer" style="font-size:0.7rem;justify-content:center;">Open</a></div>
+            <div class="card reveal" style="padding:12px;text-align:center;"><div style="font-size:1.2rem;margin-bottom:3px;">ðŸ§¬</div><div style="font-weight:600;color:#14291a;font-size:0.78rem;margin-bottom:5px;">Primer Manual</div><a class="link-pill" href="https://drive.google.com/drive/folders/1C2Rqa1B43b3xObQMmX92KRpJaxqAlj9n?usp=drive_link" target="_blank" rel="noopener noreferrer" style="font-size:0.7rem;justify-content:center;">Open</a></div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<div class="nav-controls">
+    <button class="nav-btn" id="prevBtn">â†</button>
+    <div class="slide-counter"><span id="currentSlide">1</span>/16</div>
+    <div class="slide-dots" id="slideDots"></div>
+    <button class="nav-btn" id="nextBtn">â†’</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const currentSlideSpan = document.getElementById('currentSlide');
+const slideDotsContainer = document.getElementById('slideDots');
+let currentSlide = 0;
+
+slides.forEach((_, index) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    if (index === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => goToSlide(index));
+    slideDotsContainer.appendChild(dot);
+});
+const dots = document.querySelectorAll('.dot');
+
+function animateSlide(slide){
+    const reveals = slide.querySelectorAll('.reveal');
+    reveals.forEach((el, idx) => {
+        el.classList.remove('show');
+        setTimeout(()=>el.classList.add('show'), 90 + idx * 70);
+    });
+}
+
+function goToSlide(index) {
+    slides[currentSlide].classList.remove('active');
+    dots[currentSlide].classList.remove('active');
+    currentSlide = index;
+    slides[currentSlide].classList.add('active');
+    dots[currentSlide].classList.add('active');
+    currentSlideSpan.textContent = currentSlide + 1;
+    animateSlide(slides[currentSlide]);
+}
+
+prevBtn.addEventListener('click', () => {
+    const newIndex = currentSlide === 0 ? slides.length - 1 : currentSlide - 1;
+    goToSlide(newIndex);
+});
+nextBtn.addEventListener('click', () => {
+    const newIndex = currentSlide === slides.length - 1 ? 0 : currentSlide + 1;
+    goToSlide(newIndex);
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') prevBtn.click();
+    if (e.key === 'ArrowRight') nextBtn.click();
+});
+animateSlide(slides[0]);
+</script>
 </body>
 </html>
